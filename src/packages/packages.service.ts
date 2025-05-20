@@ -14,7 +14,7 @@ export class PackagesService {
         return this.packageRepository.find();
     }
 
-    async findOne(id: string): Promise<Packages> {
+    async findOne(id: number): Promise<Packages> {
         const packageEntity = await this.packageRepository.findOneBy({ id: id });
         if (!packageEntity) {
             throw new NotFoundException(`Package with id ${id} not found`);
@@ -26,13 +26,13 @@ export class PackagesService {
         return this.packageRepository.save(packageEntity);
     }
 
-    async update(id: string, packageEntity: Packages): Promise<Packages> {
+    async update(id: number, packageEntity: Packages): Promise<Packages> {
         const existingPackage = await this.findOne(id);
         Object.assign(existingPackage, packageEntity);
         return this.packageRepository.save(existingPackage);
     }
 
-    async remove(id: string): Promise<void> {
+    async remove(id: number): Promise<void> {
         const deleteResult = await this.packageRepository.delete(id);
         if (deleteResult.affected === 0) {
             throw new NotFoundException(`Package with id ${id} not found`);

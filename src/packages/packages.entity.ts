@@ -1,15 +1,13 @@
-import { Column, Entity, PrimaryColumn } from "typeorm";
+import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity('packages')
 export class Packages {
-    @PrimaryColumn()
-    id: string;
+    @PrimaryGeneratedColumn()
+    id: number;
     @Column()
     location: string;
     @Column()
     title: string;
-    @Column()
-    url: string;
     @Column()
     price: number;
     @Column()
