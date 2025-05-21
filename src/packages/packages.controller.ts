@@ -14,8 +14,8 @@ import {
     ApiOperation,
 } from '@nestjs/swagger';
 
-@ApiTags('Packages')
-@Controller('packages')
+@ApiTags('packages')
+@Controller('/packages')
 export class PackagesController {
     constructor(private readonly packagesService: PackagesService) { }
 
