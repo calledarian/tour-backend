@@ -16,6 +16,8 @@ export class Packages {
     description: string;
     @Column('simple-array', { nullable: true })
     images: string[];
+    @Column('json', { nullable: true })
+    highlights: string[];
 
 
 }
