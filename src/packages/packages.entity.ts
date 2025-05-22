@@ -18,6 +18,8 @@ export class Packages {
     images: string[];
     @Column('json', { nullable: true })
     highlights: string[];
+    @Column()
+    costIncludes: string;
 
 
 }
