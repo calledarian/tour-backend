@@ -41,10 +41,17 @@ export class PackagesController {
 
     @UseGuards(JwtAuthGuard)
     @Post('create')
-    @ApiOperation({ summary: 'Create a new package' })
-    create(@Body() packageData: Packages): Promise<Packages> {
-        return this.packagesService.create(packageData);
+    @UseInterceptors(FilesInterceptor('images', 4, { storage }))
+    @ApiOperation({ summary: 'Create a new package (with images)' })
+    async create(
+        @Body() packageData: Packages,
+        @UploadedFiles() files: Express.Multer.File[],
+    ): Promise<Packages> {
+        const imageUrls = files.map(file => file.path);
+        return this.packagesService.create({ ...packageData, images: imageUrls });
     }
+
+
 
 
     @UseGuards(JwtAuthGuard)

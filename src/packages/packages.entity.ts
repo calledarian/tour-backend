@@ -14,7 +14,8 @@ export class Packages {
     duration: string;
     @Column()
     description: string;
-    @Column('text', { array: true, nullable: true })
+    @Column('simple-array', { nullable: true })
     images: string[];
+
 
 }
