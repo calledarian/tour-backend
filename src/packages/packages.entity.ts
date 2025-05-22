@@ -12,4 +12,9 @@ export class Packages {
     price: number;
     @Column()
     duration: string;
+    @Column()
+    description: string;
+    @Column('text', { array: true, nullable: true })
+    images: string[];
+
 }

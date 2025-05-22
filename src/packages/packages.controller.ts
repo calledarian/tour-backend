@@ -7,6 +7,8 @@ import {
     Param,
     Body,
     UseGuards,
+    UseInterceptors,
+    UploadedFiles,
 } from '@nestjs/common';
 import { PackagesService } from './packages.service';
 import { Packages } from './packages.entity';
@@ -15,6 +17,10 @@ import {
     ApiOperation,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from 'src/auth/jwt.auth.guard';
+import { storage } from 'src/db/claudinary.config';
+import { FilesInterceptor } from '@nestjs/platform-express';
+
+
 
 @ApiTags('packages')
 @Controller('/packages')
@@ -34,11 +40,21 @@ export class PackagesController {
     }
 
     @UseGuards(JwtAuthGuard)
-    @Post()
+    @Post('create')
     @ApiOperation({ summary: 'Create a new package' })
-    create(@Body() packageEntity: Packages): Promise<Packages> {
-        return this.packagesService.create(packageEntity);
+    create(@Body() packageData: Packages): Promise<Packages> {
+        return this.packagesService.create(packageData);
     }
+
+
+    @UseGuards(JwtAuthGuard)
+    @Post('upload-images')
+    @UseInterceptors(FilesInterceptor('images', 4, { storage }))
+    uploadImages(@UploadedFiles() files: Express.Multer.File[]) {
+        const imageUrls = files.map(file => file.path);
+        return { imageUrls };
+    }
+
 
     @UseGuards(JwtAuthGuard)
     @Put(':id')
