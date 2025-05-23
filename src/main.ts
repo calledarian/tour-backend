@@ -2,6 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import * as dotenv from 'dotenv';
+import rateLimit from 'express-rate-limit';
 dotenv.config();
 
 
@@ -16,6 +17,21 @@ async function bootstrap() {
     .build();
   const documentFactory = () => SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, documentFactory);
+
+  const bookingsPostLimiter = rateLimit({
+    windowMs: 60 * 15000, // 1 minute
+    max: 2,
+    message: 'Too many booking requests from this IP, please try again later.',
+    standardHeaders: true,
+    legacyHeaders: false,
+  });
+
+  app.use('/bookings', (req, res, next) => {
+    if (req.method === 'POST') {
+      return bookingsPostLimiter(req, res, next);
+    }
+    next();
+  });
 
 
 
