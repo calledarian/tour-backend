@@ -57,6 +57,8 @@ export class PackagesController {
     @UseGuards(JwtAuthGuard)
     @Post('upload-images')
     @UseInterceptors(FilesInterceptor('images', 4, { storage }))
+    @ApiOperation({ summary: 'Essential for uploading images' })
+
     uploadImages(@UploadedFiles() files: Express.Multer.File[]) {
         const imageUrls = files.map(file => file.path);
         return { imageUrls };

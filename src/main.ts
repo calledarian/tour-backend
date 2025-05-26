@@ -19,9 +19,16 @@ async function bootstrap() {
   SwaggerModule.setup('api', app, documentFactory);
 
   const bookingsPostLimiter = rateLimit({
-    windowMs: 60 * 15000, // 1 minute
+    windowMs: 60 * 15000, // 15 minute
     max: 2,
     message: 'Too many booking requests from this IP, please try again later.',
+    standardHeaders: true,
+    legacyHeaders: false,
+  });
+  const packagesGetLimiter = rateLimit({
+    windowMs: 60 * 1000, // 1 minute
+    max: 20,
+    message: 'Too many requests, try in 1 minute.',
     standardHeaders: true,
     legacyHeaders: false,
   });
@@ -32,6 +39,13 @@ async function bootstrap() {
     }
     next();
   });
+  app.use('/packages', (req, res, next) => {
+    if (req.method === 'GET') {
+      return packagesGetLimiter(req, res, next);
+    }
+    next();
+  });
+
 
 
 
