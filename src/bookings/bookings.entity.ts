@@ -1,3 +1,4 @@
+// bookings.entity.ts
 import { Column, Entity, PrimaryGeneratedColumn, CreateDateColumn } from "typeorm";
 
 @Entity('bookings')
@@ -14,6 +15,8 @@ export class Bookings {
     people: number;
     @Column({ length: 20 })
     phone: string;
+    @Column({ type: 'date' })
+    tourDate: Date;
     @Column({ type: 'text', nullable: true })
     notes: string;
     @Column({ type: 'decimal', precision: 10, scale: 2 })

@@ -26,9 +26,9 @@ async function bootstrap() {
     legacyHeaders: false,
   });
   const packagesGetLimiter = rateLimit({
-    windowMs: 60 * 1000, // 1 minute
-    max: 20,
-    message: 'Too many requests, try in 1 minute.',
+    windowMs: 60 * 10000, // 10 minute
+    max: 50,
+    message: 'Too many requests, try in 10 minutes.',
     standardHeaders: true,
     legacyHeaders: false,
   });
