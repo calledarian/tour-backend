@@ -8,11 +8,13 @@ import {
     UseGuards,
     Patch,
     BadRequestException,
+    ForbiddenException,
 } from '@nestjs/common';
 import { BookingsService } from './bookings.service';
 import { Bookings } from './bookings.entity';
 import { JwtAuthGuard } from 'src/auth/jwt.auth.guard';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import { CreateBookingDto } from './dto/bookings.dto';
 
 @ApiTags('bookings')
 @Controller('/bookings')
@@ -21,11 +23,15 @@ export class BookingsController {
 
     @Post()
     @ApiOperation({ summary: 'Booking request, 2 per 15 minutes' })
-    create(@Body() createBookingDto: Partial<Bookings>) {
-        if (!createBookingDto || Object.keys(createBookingDto).length === 0) {
+    create(@Body() body: CreateBookingDto & { extra_field?: string }) {
+        if (body.extra_field) {
+            throw new ForbiddenException('Bot detected');
+        }
+        if (!body || Object.keys(body).length === 0) {
             throw new BadRequestException('Request body cannot be empty.');
         }
-        return this.bookingsService.create(createBookingDto);
+
+        return this.bookingsService.create(body);
     }
 
 
