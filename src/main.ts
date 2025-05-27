@@ -10,6 +10,7 @@ dotenv.config();
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  // Setup Swagger documentation once
   const config = new DocumentBuilder()
     .setTitle('Travel API')
     .setDescription('API for managing travel packages and bookings')
@@ -18,45 +19,65 @@ async function bootstrap() {
     .addTag('bookings')
     .build();
 
-  const documentFactory = () => SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api', app, documentFactory);
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('api', app, document);
 
+  // Rate limiter: POST /bookings - max 2 per 15 minutes per IP
   const bookingsPostLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000, // ✅ 15 minutes
+    windowMs: 15 * 60 * 1000, // 15 minutes
     max: 2,
     message: 'Too many booking requests from this IP, please try again later.',
     standardHeaders: true,
     legacyHeaders: false,
   });
 
-  app.use('/bookings', (req, res, next) => {
-    if (req.method === 'POST') {
-      return bookingsPostLimiter(req, res, next);
-    }
-    next();
+  // Rate limiter: POST /bookings/verify - max 10 per 15 minutes per IP
+  const bookingsVerifyLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 10,
+    message: 'Too many booking verification requests from this IP, please try again later.',
+    standardHeaders: true,
+    legacyHeaders: false,
   });
 
+  // Rate limiter: POST /auth/login - max 10 per 10 minutes per IP
   const loginPostLimiter = rateLimit({
-    windowMs: 10 * 60 * 1000, // ✅ 10 minutes
-    max: 5,
+    windowMs: 10 * 60 * 1000, // 10 minutes
+    max: 10,
     message: 'Too many login requests from this IP, please try again later.',
     standardHeaders: true,
     legacyHeaders: false,
   });
 
-  app.use('/auth/login', (req, res, next) => {
+  // Rate limiter: GET /packages - max 200 per 10 minutes per IP
+  const packagesGetLimiter = rateLimit({
+    windowMs: 10 * 60 * 1000, // 10 minutes
+    max: 200,
+    message: 'Too many requests, try again in 10 minutes.',
+    standardHeaders: true,
+    legacyHeaders: false,
+  });
+
+  app.use('/bookings/verify', (req, res, next) => {
     if (req.method === 'POST') {
-      return loginPostLimiter(req, res, next);
+      return bookingsVerifyLimiter(req, res, next);
     }
     next();
   });
 
-  const packagesGetLimiter = rateLimit({
-    windowMs: 10 * 60 * 1000, // ✅ 10 minutes
-    max: 50,
-    message: 'Too many requests, try again in 10 minutes.',
-    standardHeaders: true,
-    legacyHeaders: false,
+  app.use('/bookings', (req, res, next) => {
+    const isVerifyPath = req.originalUrl.startsWith('/bookings/verify');
+    if (req.method === 'POST' && !isVerifyPath) {
+      return bookingsPostLimiter(req, res, next);
+    }
+    next();
+  });
+
+  app.use('/auth/login', (req, res, next) => {
+    if (req.method === 'POST' && req.path === '/') {
+      return loginPostLimiter(req, res, next);
+    }
+    next();
   });
 
   app.use('/packages', (req, res, next) => {
@@ -65,13 +86,18 @@ async function bootstrap() {
     }
     next();
   });
-  new ValidationPipe({
-    whitelist: true, // Strip unexpected fields
-    forbidNonWhitelisted: false, // Set to true if you want to throw on unexpected fields
-    transform: true, // Auto-transform payloads to DTO instances
-  }),
-    app.enableCors();
 
-  await app.listen(process.env.PORT ?? 3002);
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true, // Strip unexpected fields
+      forbidNonWhitelisted: false, // Change to true to throw error on unexpected fields
+      transform: true, // Auto-transform payloads to DTO instances
+    }),
+  );
+
+  app.enableCors();
+
+  const port = process.env.PORT ?? 3002;
+  await app.listen(port);
 }
 bootstrap();

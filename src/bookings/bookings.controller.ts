@@ -15,6 +15,7 @@ import { JwtAuthGuard } from 'src/auth/jwt.auth.guard';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CreateBookingDto } from './dto/bookings.dto';
 import { MailService } from 'src/mail/mail.service';
+import { VerifyBookingsDto } from './dto/verifybookings.dto';
 
 @ApiTags('bookings')
 @Controller('/bookings')
@@ -34,6 +35,23 @@ export class BookingsController {
         await this.mailService.sendBookingReceivedEmail(booking);
         return { message: 'Booking received', booking };
     }
+
+    @Post('verify')
+    async verifyBooking(@Body() verifyBookingDto: VerifyBookingsDto) {
+        const { email, referenceCode } = verifyBookingDto;
+
+        const booking = await this.bookingsService.findByEmailAndReferenceCode(email, referenceCode);
+
+        if (!booking) {
+            throw new BadRequestException('Booking not found or reference code incorrect.');
+        }
+
+        return {
+            message: 'Booking verified successfully.',
+            booking,  // returns all properties from Bookings entity
+        };
+    }
+
 
 
     @UseGuards(JwtAuthGuard)

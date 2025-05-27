@@ -21,6 +21,15 @@ export class BookingsService {
         return await this.bookingsRepository.save(booking);
     }
 
+    async findByEmailAndReferenceCode(email: string, referenceCode: string): Promise<Bookings | null> {
+        return this.bookingsRepository.findOne({
+            where: {
+                email,
+                referenceCode,
+            },
+        });
+    }
+
 
     findAll() {
         return this.bookingsRepository.find();
