@@ -22,8 +22,9 @@ export class PackagesService {
         return packageEntity;
     }
 
-    create(packageEntity: Packages): Promise<Packages> {
-        return this.packageRepository.save(packageEntity);
+    async create(packageData: Partial<Packages>): Promise<Packages> {
+        const newPackage = this.packageRepository.create(packageData);
+        return this.packageRepository.save(newPackage);
     }
 
     async update(id: number, packageEntity: Packages): Promise<Packages> {
