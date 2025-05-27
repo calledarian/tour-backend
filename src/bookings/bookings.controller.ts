@@ -14,13 +14,12 @@ import { BookingsService } from './bookings.service';
 import { JwtAuthGuard } from 'src/auth/jwt.auth.guard';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { CreateBookingDto } from './dto/bookings.dto';
-import { MailService } from 'src/mail/mail.service';
 import { VerifyBookingsDto } from './dto/verifybookings.dto';
 
 @ApiTags('bookings')
 @Controller('/bookings')
 export class BookingsController {
-    constructor(private readonly bookingsService: BookingsService, private readonly mailService: MailService) { }
+    constructor(private readonly bookingsService: BookingsService) { }
 
     @Post()
     @ApiOperation({ summary: 'Booking request, 2 per 15 minutes, with email notification' })
@@ -32,7 +31,6 @@ export class BookingsController {
             throw new BadRequestException('Request body cannot be empty.');
         }
         const booking = await this.bookingsService.create(body);
-        await this.mailService.sendBookingReceivedEmail(booking);
         return { message: 'Booking received', booking };
     }
 
@@ -48,7 +46,7 @@ export class BookingsController {
 
         return {
             message: 'Booking verified successfully.',
-            booking,  // returns all properties from Bookings entity
+            booking,
         };
     }
 
@@ -80,10 +78,6 @@ export class BookingsController {
         @Body('status') status: 'confirmed' | 'cancelled' | 'pending',
     ) {
         const booking = await this.bookingsService.updateStatus(+id, status);
-
-        if (status === 'confirmed') {
-            await this.mailService.sendBookingConfirmedEmail(booking);
-        }
 
         return { message: 'Status updated', booking };
     }

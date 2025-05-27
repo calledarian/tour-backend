@@ -3,10 +3,9 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Bookings } from './bookings.entity';
 import { BookingsService } from './bookings.service';
 import { BookingsController } from './bookings.controller';
-import { MailModule } from 'src/mail/mail.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Bookings]), MailModule],
+  imports: [TypeOrmModule.forFeature([Bookings])],
   providers: [BookingsService],
   controllers: [BookingsController],
 })
