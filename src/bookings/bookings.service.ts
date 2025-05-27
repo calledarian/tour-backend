@@ -2,6 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Bookings } from './bookings.entity';
+import { v4 as uuidv4 } from 'uuid';
+
 
 @Injectable()
 export class BookingsService {
@@ -10,10 +12,15 @@ export class BookingsService {
         private bookingsRepository: Repository<Bookings>,
     ) { }
 
-    create(bookingData: Partial<Bookings>) {
-        const booking = this.bookingsRepository.create(bookingData);
-        return this.bookingsRepository.save(booking);
+    async create(bookingData: Partial<Bookings>) {
+        const booking = this.bookingsRepository.create({
+            ...bookingData,
+            referenceCode: uuidv4(),
+        });
+
+        return await this.bookingsRepository.save(booking);
     }
+
 
     findAll() {
         return this.bookingsRepository.find();

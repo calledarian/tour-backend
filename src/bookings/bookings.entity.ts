@@ -21,6 +21,8 @@ export class Bookings {
     notes: string;
     @Column({ type: 'decimal', precision: 10, scale: 2 })
     totalPrice: number;
+    @Column({ unique: true })
+    referenceCode: string;
     @Column({ default: 'pending' })
     status: string; // pending, confirmed, cancelled
     @CreateDateColumn()
