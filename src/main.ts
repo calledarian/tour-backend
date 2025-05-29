@@ -92,7 +92,10 @@ async function bootstrap() {
     }),
   );
 
-  app.enableCors();
+  app.enableCors({
+    origin: process.env.FRONTEND_API,
+    credentials: true,
+  });
 
   const port = process.env.PORT ?? 3002;
   await app.listen(port);

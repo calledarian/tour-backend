@@ -31,7 +31,7 @@ import { AppController } from './app.controller';
     PackagesModule,
     AuthModule,
     BookingsModule,
-    AppController
   ],
+  controllers: [AppController],
 })
 export class AppModule { }
