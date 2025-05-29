@@ -9,6 +9,7 @@ import {
     UseGuards,
     UseInterceptors,
     UploadedFiles,
+    BadRequestException,
 } from '@nestjs/common';
 import { PackagesService } from './packages.service';
 import { Packages } from './packages.entity';
@@ -39,7 +40,7 @@ export class PackagesController {
 
     @UseGuards(JwtAuthGuard)
     @Post('create')
-    @UseInterceptors(FilesInterceptor('images', 4, { storage }))
+    @UseInterceptors(FilesInterceptor('images', 7, { storage }))
     @ApiOperation({ summary: 'Create a new package (with images)' })
     async create(
         @Body() body: any,
@@ -50,18 +51,20 @@ export class PackagesController {
         if (body.highlights) {
             try {
                 highlights = JSON.parse(body.highlights);
+                console.log(`Admin uploaded ${files.length} images at ${new Date().toISOString()}`);
+
             } catch (e) {
                 highlights = [];
             }
         }
 
-        // Convert price string to number
         const price = Number(body.price);
+        if (isNaN(price) || price <= 0) {
+            throw new BadRequestException('Price must be a positive number');
+        }
 
-        // Collect image paths from uploaded files
         const images = files.map(file => file.path);
 
-        // Build the package object to save
         const packageData: Partial<Packages> = {
             location: body.location,
             title: body.title,
@@ -78,10 +81,11 @@ export class PackagesController {
 
     @UseGuards(JwtAuthGuard)
     @Post('upload-images')
-    @UseInterceptors(FilesInterceptor('images', 4, { storage }))
+    @UseInterceptors(FilesInterceptor('images', 7, { storage }))
     @ApiOperation({ summary: 'Essential for uploading images' })
     uploadImages(@UploadedFiles() files: Express.Multer.File[]) {
         const imageUrls = files.map(file => file.path);
+        console.log(`Admin uploaded ${files.length} images at ${new Date().toISOString()}`);
         return { imageUrls };
     }
 

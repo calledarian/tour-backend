@@ -1,3 +1,4 @@
+global.crypto = require('crypto');
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
@@ -10,7 +11,6 @@ dotenv.config();
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // Setup Swagger documentation once
   const config = new DocumentBuilder()
     .setTitle('Travel API')
     .setDescription('API for managing travel packages and bookings')
@@ -31,16 +31,14 @@ async function bootstrap() {
     legacyHeaders: false,
   });
 
-  // Rate limiter: POST /bookings/verify - max 10 per 15 minutes per IP
   const bookingsVerifyLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
-    max: 10,
+    max: 20,
     message: 'Too many booking verification requests from this IP, please try again later.',
     standardHeaders: true,
     legacyHeaders: false,
   });
 
-  // Rate limiter: POST /auth/login - max 10 per 10 minutes per IP
   const loginPostLimiter = rateLimit({
     windowMs: 10 * 60 * 1000, // 10 minutes
     max: 10,
@@ -49,7 +47,6 @@ async function bootstrap() {
     legacyHeaders: false,
   });
 
-  // Rate limiter: GET /packages - max 200 per 10 minutes per IP
   const packagesGetLimiter = rateLimit({
     windowMs: 10 * 60 * 1000, // 10 minutes
     max: 200,

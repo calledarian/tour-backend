@@ -24,14 +24,15 @@ export class PackagesService {
 
     async create(packageData: Partial<Packages>): Promise<Packages> {
         const newPackage = this.packageRepository.create(packageData);
-        return this.packageRepository.save(newPackage);
+        return await this.packageRepository.save(newPackage);
     }
 
-    async update(id: number, packageEntity: Packages): Promise<Packages> {
+    async update(id: number, packageData: Partial<Packages>): Promise<Packages> {
         const existingPackage = await this.findOne(id);
-        Object.assign(existingPackage, packageEntity);
+        Object.assign(existingPackage, packageData);
         return this.packageRepository.save(existingPackage);
     }
+
 
     async remove(id: number): Promise<void> {
         const deleteResult = await this.packageRepository.delete(id);

@@ -8,6 +8,7 @@ import { BookingsModule } from './bookings/bookings.module';
 import { Bookings } from './bookings/bookings.entity';
 
 
+
 @Module({
   imports: [
 
@@ -18,9 +19,9 @@ import { Bookings } from './bookings/bookings.entity';
       useFactory: (config: ConfigService) => ({
         type: 'postgres',
         host: config.get('DB_HOST'),
-        port: +(config.get<number>('DB_PORT') ?? 5432),
-        username: config.get('DB_USER'),
-        password: config.get('DB_PASS'),
+        port: parseInt(config.get<string>('DB_PORT') ?? '5432', 10),
+        username: config.get('DB_USER'),  //change it back to 'DB_USER'
+        password: config.get('DB_PASS'),  //change it back to 'DB_PASS' before git push
         database: config.get('DB_NAME'),
         entities: [Packages, Bookings],
         synchronize: true

@@ -1,47 +1,64 @@
-import { IsInt, IsString, IsEmail, IsOptional, IsNumber, Min, Length, IsDate } from 'class-validator';
+import {
+    IsInt,
+    IsString,
+    IsEmail,
+    IsOptional,
+    IsNumber,
+    Min,
+    Length,
+    IsDate,
+    IsNotEmpty,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 import { ApiProperty } from '@nestjs/swagger';
 
 export class CreateBookingDto {
-    @ApiProperty()
-    @IsInt()
+    @ApiProperty({ description: 'ID of the tour being booked' })
+    @IsInt({ message: 'tourId must be an integer' })
+    @IsNotEmpty({ message: 'tourId is required' })
     tourId: number;
 
-    @ApiProperty()
-    @IsString()
-    @Length(1, 100)
+    @ApiProperty({ description: 'Full name of the person booking' })
+    @IsString({ message: 'Name must be a string' })
+    @Length(1, 100, { message: 'Name must be between 1 and 100 characters' })
+    @IsNotEmpty({ message: 'Name is required' })
     name: string;
 
-    @ApiProperty()
-    @IsEmail()
+    @ApiProperty({ description: 'Email address of the person booking' })
+    @IsEmail({}, { message: 'Email must be a valid email address' })
+    @IsNotEmpty({ message: 'Email is required' })
     email: string;
 
-    @ApiProperty()
-    @IsInt()
-    @Min(1)
+    @ApiProperty({ description: 'Number of people for the booking (minimum 1)' })
+    @IsInt({ message: 'People must be an integer' })
+    @Min(1, { message: 'At least one person must be booked' })
+    @IsNotEmpty({ message: 'People is required' })
     people: number;
 
-    @ApiProperty()
-    @IsString()
-    @Length(1, 20)
+    @ApiProperty({ description: 'Contact phone number' })
+    @IsString({ message: 'Phone must be a string' })
+    @Length(1, 20, { message: 'Phone must be between 1 and 20 characters' })
+    @IsNotEmpty({ message: 'Phone is required' })
     phone: string;
 
-    @ApiProperty()
+    @ApiProperty({ description: 'Date of the tour' })
     @Type(() => Date)
-    @IsDate()
+    @IsDate({ message: 'tourDate must be a valid date' })
+    @IsNotEmpty({ message: 'tourDate is required' })
     tourDate: Date;
 
-    @ApiProperty()
+    @ApiProperty({ description: 'Additional notes (optional)', required: false })
     @IsOptional()
-    @IsString()
+    @IsString({ message: 'Notes must be a string' })
     notes?: string;
 
-    @ApiProperty()
-    @IsNumber()
+    @ApiProperty({ description: 'Total price for the booking' })
+    @IsNumber({}, { message: 'totalPrice must be a number' })
+    @IsNotEmpty({ message: 'totalPrice is required' })
     totalPrice: number;
 
-    @ApiProperty()
+    @ApiProperty({ description: "Booking status, defaults to 'pending'", required: false })
     @IsOptional()
-    @IsString()
-    status?: string;  // optional, defaults to 'pending' in entity
+    @IsString({ message: 'Status must be a string' })
+    status?: string;
 }

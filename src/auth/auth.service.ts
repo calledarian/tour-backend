@@ -1,19 +1,28 @@
 import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-
+import { ConfigService } from '@nestjs/config';
+import * as bcrypt from 'bcrypt';
 @Injectable()
 export class AuthService {
-    constructor(private jwtService: JwtService) { }
+    constructor(
+        private readonly jwtService: JwtService,
+        private readonly configService: ConfigService,
+    ) { }
 
     async validateUser(username: string, password: string): Promise<any> {
-        if (
-            username === process.env.DEFAULT_USERNAME &&
-            password === process.env.DEFAULT_PASSWORD
-        ) {
+        if (username !== this.configService.get('DEFAULT_USERNAME')) {
+            return null;
+        }
+
+        const hashedPassword = this.configService.get('DEFAULT_PASSWORD'); // hashed password in env
+        const isMatch = await bcrypt.compare(password, hashedPassword);
+
+        if (isMatch) {
             return { username };
         }
         return null;
     }
+
 
     async login(username: string, password: string) {
         const user = await this.validateUser(username, password);

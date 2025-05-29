@@ -15,11 +15,11 @@ export class BookingsService {
     async create(bookingData: Partial<Bookings>) {
         const booking = this.bookingsRepository.create({
             ...bookingData,
-            referenceCode: uuidv4(),
+            referenceCode: uuidv4().slice(0, 8),
         });
-
         return await this.bookingsRepository.save(booking);
     }
+
 
     async findByEmailAndReferenceCode(email: string, referenceCode: string): Promise<Bookings | null> {
         return this.bookingsRepository.findOne({

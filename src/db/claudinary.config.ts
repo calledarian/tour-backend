@@ -11,9 +11,11 @@ cloudinary.config({
 
 export const storage = new CloudinaryStorage({
     cloudinary,
-    params: {
+    params: async (req, file) => ({
         folder: 'tour-packages',
-        allowed_formats: ['jpg', 'png'],
-    } as any
+        allowed_formats: ['jpg', 'png', 'jpeg', 'webp', 'heic', 'heif', 'avif'],
+        transformation: [{ width: 1200, height: 800, crop: 'limit', quality: 'auto' }],
+        fileSize: 10 * 1024 * 1024,
+    }),
 
 });
