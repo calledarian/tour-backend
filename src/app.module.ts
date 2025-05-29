@@ -6,6 +6,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { AuthModule } from './auth/auth.module';
 import { BookingsModule } from './bookings/bookings.module';
 import { Bookings } from './bookings/bookings.entity';
+import { AppController } from './app.controller';
 
 
 
@@ -30,6 +31,7 @@ import { Bookings } from './bookings/bookings.entity';
     PackagesModule,
     AuthModule,
     BookingsModule,
+    AppController
   ],
 })
 export class AppModule { }
