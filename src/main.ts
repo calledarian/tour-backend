@@ -10,6 +10,7 @@ dotenv.config();
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+  (app as any).set('trust proxy', 1);
 
   // Swagger setup
   const config = new DocumentBuilder()
@@ -31,15 +32,24 @@ async function bootstrap() {
     }),
   );
 
-  // Enable CORS with proper options
+  // Define allowed origins for CORS
+  const allowedOrigins = [
+    process.env.FRONTEND_API,
+  ];
+
   app.enableCors({
-    origin: process.env.FRONTEND_API, // your frontend URL, e.g. http://localhost:3000
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
+    credentials: false,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
-    credentials: false, // false since you don't use cookies, just JWT in headers
-    preflightContinue: false,
-    optionsSuccessStatus: 204,
   });
+
 
   // Rate limiters
   const bookingsPostLimiter = rateLimit({
