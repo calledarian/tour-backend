@@ -11,11 +11,6 @@ dotenv.config();
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  // Get the underlying Express instance and set trust proxy
-  const expressApp = app.getHttpAdapter().getInstance();
-  expressApp.set('trust proxy', 1);
-
-  // Swagger setup
   const config = new DocumentBuilder()
     .setTitle('Travel API')
     .setDescription('API for managing travel packages and bookings')
@@ -23,51 +18,13 @@ async function bootstrap() {
     .addTag('packages')
     .addTag('bookings')
     .build();
+
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
 
-  // Global validation pipe
-  app.useGlobalPipes(
-    new ValidationPipe({
-      whitelist: true,
-      forbidNonWhitelisted: false,
-      transform: true,
-    }),
-  );
-
-  // Define allowed origins for CORS
-  const allowedOrigins = [process.env.FRONTEND_API];
-
-  app.enableCors({
-    origin: (origin, callback) => {
-      if (!origin) {
-        // Allow requests with no origin like curl or Postman
-        return callback(null, true);
-      }
-      if (allowedOrigins.includes(origin)) {
-        return callback(null, true);
-      }
-      return callback(new Error('Not allowed by CORS'));
-    },
-    credentials: false,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
-    preflightContinue: false,
-    optionsSuccessStatus: 204,
-  });
-
-  // Log and respond to CORS errors gracefully
-  expressApp.use((err, req, res, next) => {
-    if (err) {
-      console.error('CORS error:', err.message);
-      return res.status(403).json({ message: 'CORS error: ' + err.message });
-    }
-    next();
-  });
-
-  // Rate limiters
+  // Rate limiter: POST /bookings - max 2 per 15 minutes per IP
   const bookingsPostLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000,
+    windowMs: 15 * 60 * 1000, // 15 minutes
     max: 2,
     message: 'Too many booking requests from this IP, please try again later.',
     standardHeaders: true,
@@ -75,7 +32,7 @@ async function bootstrap() {
   });
 
   const bookingsVerifyLimiter = rateLimit({
-    windowMs: 15 * 60 * 1000,
+    windowMs: 15 * 60 * 1000, // 15 minutes
     max: 20,
     message: 'Too many booking verification requests from this IP, please try again later.',
     standardHeaders: true,
@@ -83,7 +40,7 @@ async function bootstrap() {
   });
 
   const loginPostLimiter = rateLimit({
-    windowMs: 10 * 60 * 1000,
+    windowMs: 10 * 60 * 1000, // 10 minutes
     max: 10,
     message: 'Too many login requests from this IP, please try again later.',
     standardHeaders: true,
@@ -91,14 +48,13 @@ async function bootstrap() {
   });
 
   const packagesGetLimiter = rateLimit({
-    windowMs: 10 * 60 * 1000,
+    windowMs: 10 * 60 * 1000, // 10 minutes
     max: 200,
     message: 'Too many requests, try again in 10 minutes.',
     standardHeaders: true,
     legacyHeaders: false,
   });
 
-  // Use rate limiters on routes, making sure OPTIONS requests pass through
   app.use('/bookings/verify', (req, res, next) => {
     if (req.method === 'POST') {
       return bookingsVerifyLimiter(req, res, next);
@@ -115,7 +71,7 @@ async function bootstrap() {
   });
 
   app.use('/auth/login', (req, res, next) => {
-    if (req.method === 'POST') {
+    if (req.method === 'POST' && req.path === '/') {
       return loginPostLimiter(req, res, next);
     }
     next();
@@ -128,10 +84,17 @@ async function bootstrap() {
     next();
   });
 
-  // Start server
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true, // Strip unexpected fields
+      forbidNonWhitelisted: false, // Change to true to throw error on unexpected fields
+      transform: true, // Auto-transform payloads to DTO instances
+    }),
+  );
+
+  app.enableCors();
+
   const port = process.env.PORT ?? 3002;
   await app.listen(port);
-  console.log(`Server running on port ${port}`);
 }
-
 bootstrap();
