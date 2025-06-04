@@ -55,11 +55,10 @@ export class AuthController {
     @UseGuards(JwtAuthGuard)
     @Post('/logout')
     logout(@Res({ passthrough: true }) res: Response) {
-        // Clear the cookie by setting it empty with immediate expiry
         res.clearCookie('jwt', {
             httpOnly: true,
-            secure: true,        // keep consistent with login cookie settings
-            sameSite: 'lax',
+            secure: true,
+            sameSite: 'none',
         });
         return { message: 'Logged out successfully' };
     }
