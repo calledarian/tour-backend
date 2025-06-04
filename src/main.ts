@@ -1,4 +1,5 @@
 import * as crypto from 'crypto';
+import * as cookieParser from 'cookie-parser';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
@@ -11,6 +12,25 @@ dotenv.config();
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  // 1. Enable CORS first — so preflight OPTIONS requests are handled correctly
+  app.enableCors({
+    origin: process.env.FRONTEND_URL,
+    credentials: true,
+  });
+
+  // 2. Use cookie parser next (before any routes/middleware)
+  app.use(cookieParser());
+
+  // 3. Global validation pipe to sanitize and transform request bodies
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true, // Strip unexpected fields
+      forbidNonWhitelisted: false,
+      transform: true, // Automatically transform payloads to DTO instances
+    }),
+  );
+
+  // 4. Setup Swagger documentation
   const config = new DocumentBuilder()
     .setTitle('Travel API')
     .setDescription('API for managing travel packages and bookings')
@@ -22,7 +42,7 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api', app, document);
 
-  // Rate limiter: POST /bookings - max 2 per 15 minutes per IP
+  // 5. Rate limiting middleware for different routes
   const bookingsPostLimiter = rateLimit({
     windowMs: 15 * 60 * 1000, // 15 minutes
     max: 2,
@@ -55,6 +75,7 @@ async function bootstrap() {
     legacyHeaders: false,
   });
 
+  // Apply rate limiters by route and method
   app.use('/bookings/verify', (req, res, next) => {
     if (req.method === 'POST') {
       return bookingsVerifyLimiter(req, res, next);
@@ -84,17 +105,9 @@ async function bootstrap() {
     next();
   });
 
-  app.useGlobalPipes(
-    new ValidationPipe({
-      whitelist: true, // Strip unexpected fields
-      forbidNonWhitelisted: false, // Change to true to throw error on unexpected fields
-      transform: true, // Auto-transform payloads to DTO instances
-    }),
-  );
-
-  app.enableCors();
-
   const port = process.env.PORT ?? 3002;
   await app.listen(port);
+  console.log(`Server running on port ${port}`);
 }
+
 bootstrap();

@@ -2,9 +2,10 @@ import {
     Controller,
     Post,
     Body,
-    BadRequestException,
     ForbiddenException,
+    Res,
 } from '@nestjs/common';
+import { Response } from 'express';
 import { AuthService } from './auth.service';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import { LoginDto } from './dto/login.dto';
@@ -16,7 +17,7 @@ export class AuthController {
 
     @Post('/login')
     @ApiOperation({ summary: 'Login request with username and password' })
-    async login(@Body() body: LoginDto) {
+    async login(@Body() body: LoginDto, @Res({ passthrough: true }) res: Response) {
         const { username, password, extra_field } = body;
 
         // Honeypot bot detection
@@ -24,6 +25,16 @@ export class AuthController {
             throw new ForbiddenException('Bot detected');
         }
 
-        return this.authService.login(username, password);
+        const token = await this.authService.login(username, password);
+
+        // Set JWT token as httpOnly cookie
+        res.cookie('jwt', token, {
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'lax',
+            maxAge: 15 * 60 * 1000, // 15 minutes
+        });
+
+        return { message: 'Logged in successfully' };
     }
 }
