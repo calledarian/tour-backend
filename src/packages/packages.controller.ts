@@ -92,9 +92,11 @@ export class PackagesController {
     @UseGuards(JwtAuthGuard)
     @Put(':id')
     @ApiOperation({ summary: 'Update package by ID' })
-    update(@Param('id') id: number, @Body() packageEntity: Packages): Promise<Packages> {
+    update(@Param('id') id: number, @Body() packageEntity: Partial<Packages>): Promise<Packages> {
         return this.packagesService.update(id, packageEntity);
     }
+
+
 
     @UseGuards(JwtAuthGuard)
     @Delete(':id')

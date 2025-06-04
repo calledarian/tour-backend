@@ -28,9 +28,12 @@ export class PackagesService {
     }
 
     async update(id: number, packageData: Partial<Packages>): Promise<Packages> {
-        const existingPackage = await this.findOne(id);
-        Object.assign(existingPackage, packageData);
-        return this.packageRepository.save(existingPackage);
+        await this.packageRepository.update(id, packageData);
+        const updated = await this.packageRepository.findOneBy({ id });
+        if (!updated) {
+            throw new Error('Package not found');
+        }
+        return updated;
     }
 
 
