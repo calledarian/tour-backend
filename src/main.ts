@@ -12,8 +12,6 @@ dotenv.config();
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
-  app.set('trust proxy', true);
-
   // 1. Enable CORS first — so preflight OPTIONS requests are handled correctly
   app.enableCors({
     origin: process.env.FRONTEND_URL,
