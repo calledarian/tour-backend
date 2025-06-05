@@ -12,7 +12,6 @@ import { AppController } from './app.controller';
 
 @Module({
   imports: [
-
     ConfigModule.forRoot({ isGlobal: true }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
@@ -21,8 +20,8 @@ import { AppController } from './app.controller';
         type: 'postgres',
         host: config.get('DB_HOST'),
         port: parseInt(config.get<string>('DB_PORT') ?? '5432', 10),
-        username: config.get('DB_USER'),  //change it back to 'DB_USER'
-        password: config.get('DB_PASSW'),  //change it back to 'DB_PASS' before git push
+        username: config.get('DB_USERNAME'),  //change it back to 'DB_USER'
+        password: config.get('DB_PASSWORD'),  //change it back to 'DB_PASS' before git push
         database: config.get('DB_NAME'),
         entities: [Packages, Bookings],
         synchronize: true

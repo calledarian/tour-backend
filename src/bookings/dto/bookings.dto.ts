@@ -50,6 +50,7 @@ export class CreateBookingDto {
     @ApiProperty({ description: 'Additional notes (optional)', required: false })
     @IsOptional()
     @IsString({ message: 'Notes must be a string' })
+    @Length(0, 500, { message: 'Notes must be up to 500 characters' })
     notes?: string;
 
     @ApiProperty({ description: 'Total price for the booking' })
@@ -61,4 +62,8 @@ export class CreateBookingDto {
     @IsOptional()
     @IsString({ message: 'Status must be a string' })
     status?: string;
+
+    @IsString()
+    @IsNotEmpty()
+    captchaToken: string;
 }

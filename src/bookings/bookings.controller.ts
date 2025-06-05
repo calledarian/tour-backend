@@ -30,7 +30,20 @@ export class BookingsController {
         if (!body || Object.keys(body).length === 0) {
             throw new BadRequestException('Request body cannot be empty.');
         }
-        const booking = await this.bookingsService.create(body);
+        if (!body.captchaToken) {
+            throw new BadRequestException('Captcha token is missing.');
+        }
+
+        // Verify captcha here:
+        const isCaptchaValid = await this.bookingsService.verifyCaptcha(body.captchaToken);
+        if (!isCaptchaValid) {
+            throw new ForbiddenException('Captcha verification failed');
+        }
+
+        // Remove captchaToken so it's not saved in DB:
+        const { captchaToken, ...bookingData } = body;
+
+        const booking = await this.bookingsService.create(bookingData);
         return { message: 'Booking received', booking };
     }
 
