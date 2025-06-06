@@ -27,6 +27,6 @@ export class Bookings {
     status: string; // pending, confirmed, cancelled
     @CreateDateColumn()
     createdAt: Date;
-    @Column()
+    @Column({ nullable: true })
     captchaToken: string;
 }
