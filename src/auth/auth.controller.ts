@@ -47,12 +47,14 @@ export class AuthController {
     }
 
     @UseGuards(JwtAuthGuard)
+    @ApiOperation({ summary: 'Get current logged-in user' })
     @Get('/me')
     getMe(@Req() req: Request & { user: JwtUser }) {
         return { username: req.user.username };
     }
 
     @UseGuards(JwtAuthGuard)
+    @ApiOperation({ summary: 'Log out the current user by clearing JWT cookie' })
     @Post('/logout')
     logout(@Res({ passthrough: true }) res: Response) {
         res.clearCookie('jwt', {

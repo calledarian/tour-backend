@@ -47,7 +47,8 @@ export class BookingsController {
         return { message: 'Booking received', booking };
     }
 
-    @Post('verify')
+    @Post('/verify')
+    @ApiOperation({ summary: 'Verify booking by refference Code and Email' })
     async verifyBooking(@Body() verifyBookingDto: VerifyBookingsDto) {
         const { email, referenceCode } = verifyBookingDto;
 
