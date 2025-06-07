@@ -19,14 +19,28 @@ export class BookingsService {
             throw new Error('reCAPTCHA secret key not set in environment variables');
         }
 
-        const url = `https://www.google.com/recaptcha/api/siteverify?secret=${secretKey}&response=${token}`;
+        const params = new URLSearchParams();
+        params.append('secret', secretKey);
+        params.append('response', token);
 
         try {
-            const response = await axios.post(url);
-            return response.data.success && response.data.score >= 0.5;
-            // For reCAPTCHA v2, score might not exist, so just use response.data.success
-            // For v2 use:
-            // return response.data.success;
+            const response = await axios.post(
+                'https://www.google.com/recaptcha/api/siteverify',
+                params,
+                {
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+                }
+            );
+
+            // For reCAPTCHA v3, score is returned; for v2, score is undefined
+            if (response.data.success) {
+                if ('score' in response.data) {
+                    return response.data.score >= 0.5;
+                }
+                return true; // v2 case, just success true
+            }
+            return false;
+
         } catch (error) {
             console.error('Captcha verification error:', error);
             return false;

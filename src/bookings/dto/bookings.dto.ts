@@ -63,7 +63,9 @@ export class CreateBookingDto {
     @IsString({ message: 'Status must be a string' })
     status?: string;
 
-    @IsString()
-    @IsNotEmpty()
+    @ApiProperty({ description: 'Captcha token from client for verification' })
+    @IsString({ message: 'captchaToken must be a string' })
+    @IsNotEmpty({ message: 'captchaToken is required' })
     captchaToken: string;
+
 }
